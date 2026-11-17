@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Goli Daily Stack Builder</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,sans-serif;background:#f8fafc;color:#1e293b;padding:16px;line-height:1.5}
+  .wrap{max-width:720px;margin:0 auto}
+  .note{font-size:12px;color:#64748b;background:#e2e8f0;padding:8px;border-radius:8px;text-align:center;margin-bottom:16px}
+  h1{font-size:26px;text-align:center;margin-bottom:4px}
+  .sub{text-align:center;color:#64748b;font-size:14px;margin-bottom:20px}
+  .box{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:14px}
+  h2{font-size:16px;margin-bottom:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}
+  button{font-family:inherit;cursor:pointer;border-radius:8px;border:2px solid #e2e8f0;background:#fff;padding:10px;text-align:left;transition:.15s}
+  button.on{border-color:#dc2626;background:#fef2f2}
+  .g-t{font-weight:700;font-size:14px;display:block}
+  .g-d{font-size:12px;color:#64748b}
+  .sizes{display:flex;gap:8px;flex-wrap:wrap}
+  .sizes button{flex:1;min-width:120px;text-align:center;font-weight:600;font-size:13px}
+  .item{border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:8px}
+  .item strong{font-size:15px}
+  .tag{float:right;font-size:11px;background:#fef2f2;color:#dc2626;padding:2px 8px;border-radius:99px;font-weight:700}
+  .meta{font-size:12px;color:#64748b;margin:4px 0}
+  .sched{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px}
+  .slot{background:#f1f5f9;padding:10px;border-radius:8px;font-size:13px}
+  .slot b{color:#dc2626;display:block;margin-bottom:2px;font-size:12px;text-transform:uppercase}
+  .cta{background:#0f172a;color:#fff;padding:18px;border-radius:12px;text-align:center;margin-top:14px}
+  .code{display:inline-block;background:#1e293b;border:1px dashed #94a3b8;padding:8px 14px;border-radius:6px;font-family:monospace;font-size:15px;margin:8px 6px}
+  .go{background:#dc2626;color:#fff;border:none;padding:10px 16px;font-weight:700;font-size:14px}
+  .go.ok{background:#16a34a}
+  footer{text-align:center;font-size:11px;color:#64748b;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="note">Disclosure: Contains affiliate links. Using our code may earn us a commission at no extra cost to you.</div>
+  <h1>Goli Daily Stack Builder</h1>
+  <p class="sub">Pick up to 3 goals to generate your daily gummy routine.</p>
+
+  <div class="box">
+    <h2>1. Select Your Goals</h2>
+    <div class="grid" id="goals"></div>
+  </div>
+
+  <div class="box">
+    <h2>2. Stack Size</h2>
+    <div class="sizes" id="sizes">
+      <button data-n="1">1 Bottle</button>
+      <button data-n="2" class="on">2 Bottles</button>
+      <button data-n="3">3 Bottles</button>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>Your Recommended Routine</h2>
+    <div id="list"></div>
+    <h2 style="margin-top:14px">Daily Schedule</h2>
+    <div class="sched" id="sched"></div>
+    <div class="cta">
+      <div style="font-weight:700;font-size:17px">Save on Your Stack</div>
+      <div style="font-size:13px;color:#cbd5e1">Copy our partner code for extra bundle savings at checkout:</div>
+      <span class="code" id="cText"></span>
+      <button class="go" id="cBtn">Copy Code & Open Goli</button>
+    </div>
+  </div>
+
+  <footer>Independent partner tool. Not affiliated with Goli Nutrition Inc. Not medical advice.</footer>
+</div>
+
+<script>
+const CODE = "YOUR_CODE";
+const LINK = "https://goli.com";
+
+const DATA = {
+  acv:{n:"Goli ACV Gummies",t:"Digestion",d:"1-2 gummies up to 3x/day",w:"Morning",s:"Take 2 ACV before breakfast for digestion & cravings.",i:"500mg Apple Cider Vinegar + Vitamin B12 for daily energy."},
+  ash:{n:"Goli Ashwagandha",t:"Stress & Focus",d:"2 gummies twice daily",w:"Afternoon",s:"Take 2 Ashwagandha mid-afternoon to unwind stress.",i:"KSM-66 Ashwagandha + Vitamin D for cortisol balance."},
+  slp:{n:"Goli Dreamy Sleep",t:"Sleep",d:"2 gummies before bed",w:"Night",s:"Take 2 Dreamy Sleep 30 mins before bed.",i:"5mg Melatonin, Magnesium & Lemon Balm for deeper rest."},
+  grn:{n:"Goli Supergreens",t:"Nutrition",d:"2 gummies twice daily",w:"Morning",s:"Take 2 Supergreens with breakfast for daily greens.",i:"Artichoke, spirulina & essential vitamins A, B6, B12."},
+  frt:{n:"Goli Superfruits",t:"Skin & Glow",d:"2 gummies twice daily",w:"Afternoon",s:"Take 2 Superfruits as an afternoon skin-support treat.",i:"Bamboo Silica, Vitamin C & antioxidants for collagen."},
+  bet:{n:"Goli Beets Cardio",t:"Stamina",d:"2 gummies daily",w:"Morning",s:"Take 2 Beets Cardio 30 mins before workouts.",i:"Beetroot extract + CoQ10 for circulation & heart energy."}
+};
+
+const GOALS = [
+  {id:"d",t:"Digestion & Cravings",d:"Gut & metabolism",p:"acv"},
+  {id:"s",t:"Stress & Focus",d:"Calm mood & balance",p:"ash"},
+  {id:"z",t:"Deeper Sleep",d:"Fall asleep faster",p:"slp"},
+  {id:"e",t:"Workout & Stamina",d:"Circulation & energy",p:"bet"},
+  {id:"n",t:"Daily Greens",d:"Vitamins & nutrients",p:"grn"},
+  {id:"k",t:"Skin & Hair Glow",d:"Collagen & antioxidants",p:"frt"}
+];
+
+let sel = ["d","s"], count = 2;
+document.getElementById("cText").textContent = CODE;
+
+function draw(){
+  const gBox = document.getElementById("goals");
+  gBox.innerHTML = "";
+  GOALS.forEach(g=>{
+    const b = document.createElement("button");
+    if(sel.includes(g.id)) b.className="on";
+    b.innerHTML = `<span class="g-t">${g.t}</span><span class="g-d">${g.d}</span>`;
+    b.onclick = ()=>{
+      if(sel.includes(g.id)){ if(sel.length>1) sel=sel.filter(x=>x!==g.id); }
+      else { if(sel.length>=3) sel.shift(); sel.push(g.id); }
+      draw();
+    };
+    gBox.appendChild(b);
+  });
+
+  let picks = [];
+  sel.forEach(id=>{ const p=GOALS.find(x=>x.id===id).p; if(!picks.includes(p)) picks.push(p); });
+  ["acv","ash","grn","slp","bet","frt"].forEach(p=>{ if(picks.length<count && !picks.includes(p)) picks.push(p); });
+  picks = picks.slice(0,count).map(k=>DATA[k]);
+
+  document.getElementById("list").innerHTML = picks.map(p=>`
+    <div class="item">
+      <span class="tag">${p.t}</span><strong>${p.n}</strong>
+      <div class="meta">Use: ${p.d} (60/bottle)</div>
+      <div style="font-size:13px">${p.i}</div>
+    </div>`).join("");
+
+  const times = {Morning:[],Afternoon:[],Night:[]};
+  picks.forEach(p=>times[p.w].push(p.s));
+  document.getElementById("sched").innerHTML = ["Morning","Afternoon","Night"].map(w=>`
+    <div class="slot"><b>${w}</b>${times[w].join(" ")||"Stay hydrated!"}</div>`).join("");
+}
+
+document.querySelectorAll("#sizes button").forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll("#sizes button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    count = +b.dataset.n;
+    draw();
+  };
+});
+
+document.getElementById("cBtn").onclick = function(){
+  navigator.clipboard.writeText(CODE).catch(()=>{});
+  this.textContent = "Copied! Opening...";
+  this.classList.add("ok");
+  setTimeout(()=>{ window.open(LINK,"_blank"); this.textContent="Copy Code & Open Goli"; this.classList.remove("ok"); },600);
+};
+
+draw();
+</script>
+</body>
+</html>
